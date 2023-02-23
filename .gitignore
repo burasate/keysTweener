@@ -125,5 +125,4 @@ dmypy.json
 .pyre/
 
 __init__.py
-version/
 publish/

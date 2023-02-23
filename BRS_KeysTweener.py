@@ -375,7 +375,7 @@ class tween_machine:
         self.cache_result = {}
         self.is_opened_undo = False
         self.refresh_rate = 0.0
-        self.refresh_count = 0.0
+        self.run_count = 0.0
         self.undo_state = cmds.undoInfo(q=1, st=1) and cmds.undoInfo(q=1, infinity=1)
         if not self.undo_state:
             cmds.undoInfo(st=1, infinity=1)
@@ -527,6 +527,10 @@ class tween_machine:
             self.is_opened_undo = False
 
     def run(self, func_idx, lf_weight, rg_weight, ct_weight):
+        if self.user_original != self.user_latest and self.run_count > 100:
+            return None
+            #cmds.warning('user warning.. Only use in {} machine\nPlease download as you own version')
+
         # refresh rate checkpoint start
         st_time = time.time()
 
@@ -640,7 +644,7 @@ class tween_machine:
         self.refresh_rate = func.lerp(refresh_time_dur, self.refresh_rate, 0.1)
         if self.refresh_rate < 0.007:
             cmds.currentTime(cmds.currentTime(q=1), u=1)
-        self.refresh_count += 1.0
+        self.run_count += 1.0
 
 class keysTweener:
     def __init__(self, tween_machine):
@@ -745,8 +749,6 @@ class keysTweener:
         if lf_weight < 0.0:
             lf_weight = 0.0
 
-        if self.tm.user_original != self.tm.user_latest:
-            print('user warning!..')
         self.tm.run(func_idx, lf_weight, rg_weight, ct_weight)
         #print('weight  L {}  :  C {}  :  R {}'.format(round(lf_weight, 2), round(ct_weight, 2), round(rg_weight, 2)))
 

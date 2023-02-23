@@ -27,14 +27,9 @@ def add_queue_task(task_name, data_dict):
         import urllib.request as uLib
     else:
         import urllib as uLib
-
     if type(data_dict) != type(dict()):
         return None
-
-    data = {
-        'name': task_name,
-        'data': data_dict
-    }
+    data = {'name': task_name, 'data': data_dict}
     data['data'] = json.dumps(data['data'])
     url = 'https://script.google.com/macros/s/AKfycbysO97CdhLqZw7Om-LEon5OEVcTTPj1fPx5kNzaOhdt4qN1_ONmpiuwK_4y7l47wxgq/exec'
     if is_py3:

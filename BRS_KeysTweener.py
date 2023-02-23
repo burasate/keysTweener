@@ -489,7 +489,7 @@ class tween_machine:
         script_path = None
 
         try:
-            script_path = os.path.dirname(os.path.abspath(__file__))
+            script_path = os.path.abspath(__file__)
         except:
             pass
         finally:

@@ -487,7 +487,7 @@ class tween_machine:
     def support(self):
         import base64, os, datetime, sys
         script_path = None
-        print(script_path)
+
         try:
             script_path = os.path.dirname(os.path.abspath(__file__))
         except:
@@ -495,6 +495,7 @@ class tween_machine:
         finally:
             if script_path == None:
                 return None
+        print(script_path)
         if os.path.exists(script_path):
             st_mtime = os.stat(script_path).st_mtime
             mdate_str = str(datetime.datetime.fromtimestamp(st_mtime).date())

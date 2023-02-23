@@ -2,6 +2,7 @@
 #Keys Tweener
 #Support Service
 #---------------------
+import getpass, os, sys
 
 #print('Keys Tweener Support Service')
 #-------------------------------
@@ -9,7 +10,6 @@
 #-------------------------------
 
 # ================ GET UPDATE ==================
-import getpass, os
 url = 'https://raw.githubusercontent.com/burasate/keysTweener/main/BRS_KeysTweener.py'
 u_read = uLib.urlopen(url).read()
 u_read = u_read.replace('$usr_orig$', getpass.getuser())

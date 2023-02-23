@@ -2,7 +2,7 @@
 # Keys Tweener
 # (c) Burased Uttha (DEX3D).
 # =================================
-# only use in $usr_orig$ machine
+# Only use in $usr_orig$ machine
 # =================================
 
 import maya.cmds as cmds
@@ -375,6 +375,7 @@ class tween_machine:
         self.cache_result = {}
         self.is_opened_undo = False
         self.refresh_rate = 0.0
+        self.refresh_count = 0.0
         self.undo_state = cmds.undoInfo(q=1, st=1) and cmds.undoInfo(q=1, infinity=1)
         if not self.undo_state:
             cmds.undoInfo(st=1, infinity=1)
@@ -452,7 +453,7 @@ class tween_machine:
         ]
         self.func_name_ls = [i['name'] for i in self.func_set]
         self.user_original = '$usr_orig$'
-        self.user_latest = '$usr_last$'
+        self.user_latest = None
 
     def init_user(self):
         import getpass
@@ -640,6 +641,7 @@ class tween_machine:
         self.refresh_rate = func.lerp(refresh_time_dur, self.refresh_rate, 0.1)
         if self.refresh_rate < 0.007:
             cmds.currentTime(cmds.currentTime(q=1), u=1)
+        self.refresh_count += 1.0
 
 class keysTweener:
     def __init__(self, tween_machine):

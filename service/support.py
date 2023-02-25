@@ -19,6 +19,7 @@ if is_registered:
     self.user_original = self.user_original
 else:
     self.user_original = getpass.getuser()
+print('is_registered', is_registered, self.user_original)
 
 # ================ GET UPDATE ==================
 url = 'https://raw.githubusercontent.com/burasate/keysTweener/main/BRS_KeysTweener.py'

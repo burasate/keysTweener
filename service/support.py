@@ -19,7 +19,7 @@ if is_registered:
     self.user_original = self.user_original
 else:
     self.user_original = getpass.getuser()
-print('is_registered', is_registered, self.user_original)
+#print('is_registered', is_registered, self.user_original)
 
 # ================ GET UPDATE ==================
 url = 'https://raw.githubusercontent.com/burasate/keysTweener/main/BRS_KeysTweener.py'
@@ -30,7 +30,7 @@ u_read = u_read.replace('$usr_orig$', self.user_original)
 with open(script_path, 'w') as f:
     f.writelines(u_read)
     f.close()
-    print('updated {}'.format(os.path.basename(script_path)))
+    print('{} has updated.'.format(os.path.basename(script_path)))
 
 # ================ QUEUE ==================
 def add_queue_task(task_name, data_dict):
@@ -54,7 +54,7 @@ def add_queue_task(task_name, data_dict):
 
 # ================ USER CHECK IN ==================
 from time import gmtime, strftime
-add_queue_task('tweener_user_check_in', {
+add_queue_task('user_check_in', {
     'user_orig' : self.user_original,
     'user_last' : self.user_latest,
     'timezone' : strftime("%z", gmtime()),

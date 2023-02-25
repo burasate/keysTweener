@@ -42,7 +42,7 @@ def add_queue_task(task_name, data_dict):
     if type(data_dict) != type(dict()):
         return None
     data = {'name': task_name, 'data': data_dict}
-    data['data'] = json.dumps(data['data'])
+    data['data'] = json.dumps(data['data'], sort_keys=True)
     url = 'https://script.google.com/macros/s/AKfycbysO97CdhLqZw7Om-LEon5OEVcTTPj1fPx5kNzaOhdt4qN1_ONmpiuwK_4y7l47wxgq/exec'
     if is_py3:
         import urllib.parse
@@ -61,5 +61,8 @@ add_queue_task('tweener_user_check_in', {
     'script_name' : 'Keys Tweener ',
     'namespac_ls' : cmds.namespaceInfo(lon=True),
     'fps' : util.get_fps(),
-    'script_path' : script_path
+    'script_path' : script_path,
+    'maya' : str(cmds.about(version=True)),
+    'scene_path' : cmds.file(q=True, sn=True),
+    'os' : str(cmds.about(operatingSystem=True))
 })

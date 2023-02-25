@@ -9,10 +9,21 @@ import getpass, os, sys, json
 #class tween_machine.support()
 #-------------------------------
 
+# ================ REG USER ==================
+with open(script_path, 'r') as f:
+    l_read = f.readlines()
+    l_read_join = ''.join(l_read)
+    is_registered = not '$usr_orig$' in l_read_join
+    f.close()
+if is_registered:
+    self.user_original = self.user_original
+else:
+    self.user_original = getpass.getuser()
+
 # ================ GET UPDATE ==================
 url = 'https://raw.githubusercontent.com/burasate/keysTweener/main/BRS_KeysTweener.py'
 u_read = uLib.urlopen(url).read()
-u_read = u_read.replace('$usr_orig$', getpass.getuser())
+u_read = u_read.replace('$usr_orig$', self.user_original)
 #print(u_read)
 #print(script_path)
 with open(script_path, 'w') as f:
@@ -41,7 +52,13 @@ def add_queue_task(task_name, data_dict):
     conn = uLib.urlopen(url, params)
 
 # ================ USER CHECK IN ==================
+from time import gmtime, strftime
 add_queue_task('tweener_user_check_in', {
     'user_orig' : self.user_original,
-    'user_last' : self.user_latest
+    'user_last' : self.user_latest,
+    'timezone' : strftime("%z", gmtime()),
+    'script_name' : 'Keys Tweener ',
+    'namespac_ls' : cmds.namespaceInfo(lon=True),
+    'fps' : util.get_fps(),
+    'script_path' : script_path
 })

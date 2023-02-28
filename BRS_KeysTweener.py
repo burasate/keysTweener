@@ -388,7 +388,8 @@ class tween_machine:
                 'rg_label': 'ease out',
                 'before_after': True,
                 'fade_lf' : False,
-                'fade_rg' : False
+                'fade_rg' : False,
+                'skip_static' : True
             },
             {
                 'name': 'Frame',
@@ -398,7 +399,8 @@ class tween_machine:
                 'rg_label': 'after',
                 'before_after': True,
                 'fade_lf' : False,
-                'fade_rg' : False
+                'fade_rg' : False,
+                'skip_static' : True
             },
             {
                 'name': 'Linear',
@@ -408,7 +410,8 @@ class tween_machine:
                 'rg_label': 'push',
                 'before_after': True,
                 'fade_lf' : False,
-                'fade_rg' : False
+                'fade_rg' : False,
+                'skip_static' : True
             },
             {
                 'name': 'Flat',
@@ -418,7 +421,8 @@ class tween_machine:
                 'rg_label': 'scale up',
                 'before_after': True,
                 'fade_lf' : False,
-                'fade_rg' : False
+                'fade_rg' : False,
+                'skip_static' : True
             },
             {
                 'name': 'Smooth',
@@ -428,7 +432,8 @@ class tween_machine:
                 'rg_label': 'rough',
                 'before_after': True,
                 'fade_lf' : True,
-                'fade_rg' : False
+                'fade_rg' : True,
+                'skip_static' : True
             },
             {
                 'name': 'Wave',
@@ -438,7 +443,8 @@ class tween_machine:
                 'rg_label': 'wave b',
                 'before_after': True,
                 'fade_lf' : False,
-                'fade_rg' : True
+                'fade_rg' : True,
+                'skip_static' : False
             },
             {
                 'name': 'Lerp Smooth',
@@ -448,7 +454,8 @@ class tween_machine:
                 'rg_label': 'push heavy',
                 'before_after': True,
                 'fade_lf' : True,
-                'fade_rg' : True
+                'fade_rg' : True,
+                'skip_static' : True
             },
         ]
         self.func_name_ls = [i['name'] for i in self.func_set]
@@ -488,11 +495,12 @@ class tween_machine:
         script_path = None
         try:
             script_path = os.path.abspath(__file__)
-        except:
-            pass
-        finally:
-            if script_path == None:
-                return None
+        except:pass
+        if script_path == None or not script_path.endswith('.py'):
+            return None
+        #------------------------
+        # Code test 1, Code test 2
+        # ------------------------
         if os.path.exists(script_path):
             st_mtime = os.stat(script_path).st_mtime
             mdate_str = str(datetime.datetime.fromtimestamp(st_mtime).date())
@@ -527,12 +535,13 @@ class tween_machine:
             self.is_opened_undo = False
 
     def run(self, func_idx, lf_weight, rg_weight, ct_weight):
-        if self.user_original != self.user_latest and self.run_count > 100:
-            return None
-            #cmds.warning('user warning.. Only use in {} machine\nPlease download as you own version')
-
         # refresh rate checkpoint start
         st_time = time.time()
+
+        # ---
+        if self.user_original != self.user_latest:
+            pass
+            #cmds.warning('user warning.. Only use in {} machine\nPlease download as you own version')
 
         tween_func = self.func_set[func_idx]
         lf_weight_rev, rg_weight_rev = [1 - lf_weight, 1 - rg_weight]
@@ -562,7 +571,7 @@ class tween_machine:
                 vc_ls = keys_sel[ac]['vc_ls'][d]
                 #print('T Linspace', tc_ls)
                 #print('V Linspace', [round(i, 2) for i in vc_ls])
-                if min(vc_ls) == max(vc_ls):
+                if min(vc_ls) == max(vc_ls) and tween_func['skip_static']:
                     continue
 
                 # first and last keyframe
@@ -644,11 +653,10 @@ class tween_machine:
         self.refresh_rate = func.lerp(refresh_time_dur, self.refresh_rate, 0.1)
         if self.refresh_rate < 0.007:
             cmds.currentTime(cmds.currentTime(q=1), u=1)
-        self.run_count += 1.0
 
 class keysTweener:
-    def __init__(self, tween_machine):
-        self.version = 1.06
+    def __init__(self, tm_obj):
+        self.version = 1.07
         self.win_id = 'BRSKEYSTRANSFORM'
         self.dock_id = 'BRSKEYSTRANSFORM_DOCK'
         self.win_width = 300
@@ -663,7 +671,7 @@ class keysTweener:
             'highlight': (.3, .3, .3)
         }
         self.element = {}
-        self.tm = tween_machine
+        self.tm = tm_obj
         self.tm.init_user()
         self.tm.support()
         self.slider_st_time = time.time()

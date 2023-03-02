@@ -496,7 +496,7 @@ class tween_machine:
         try:
             script_path = os.path.abspath(__file__)
         except:pass
-        if script_path == None or not script_path.endswith('.py'):
+        if script_path == None:
             return None
         #------------------------
         # Code test 1, Code test 2

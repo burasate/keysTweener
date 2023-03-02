@@ -9,6 +9,10 @@ import getpass, os, sys, json
 #class tween_machine.support()
 #-------------------------------
 
+# ================ CHECK PYC ==================
+if os.path.exists(script_path.replace('.pyc','py')):
+    script_path = script_path.replace('.pyc','py')
+
 # ================ REG USER ==================
 with open(script_path, 'r') as f:
     l_read = f.readlines()

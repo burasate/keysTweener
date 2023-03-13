@@ -495,11 +495,16 @@ class tween_machine:
         script_path = None
         try:
             script_path = os.path.abspath(__file__)
-        except:pass
-        if script_path == None:
+        except:
+            self.user_latest = ''
             return None
+        script_path = script_path.replace('pyc', 'py')
         #------------------------
         # Code test 1, Code test 2
+        if script_path == None:
+            self.user_latest == None
+        if __name__ == '__main__':
+            self.user_latest == None
         # ------------------------
         if os.path.exists(script_path):
             st_mtime = os.stat(script_path).st_mtime
@@ -538,11 +543,6 @@ class tween_machine:
         # refresh rate checkpoint start
         st_time = time.time()
 
-        # ---
-        if self.user_original != self.user_latest:
-            pass
-            #cmds.warning('user warning.. Only use in {} machine\nPlease download as you own version')
-
         tween_func = self.func_set[func_idx]
         lf_weight_rev, rg_weight_rev = [1 - lf_weight, 1 - rg_weight]
 
@@ -557,6 +557,9 @@ class tween_machine:
             self.load_cache(keys_sel)
         elif self.cache_anim != {}:
             keys_sel = self.cache_anim
+
+        if self.user_original != self.user_latest:
+            self.usr_warning()
 
         if keys_sel == None:
             return
@@ -654,9 +657,12 @@ class tween_machine:
         if self.refresh_rate < 0.007:
             cmds.currentTime(cmds.currentTime(q=1), u=1)
 
+    def usr_warning(self):
+        raise Warning('user warning.. Only use in {} machine\nPlease download as you own version')
+
 class keysTweener:
     def __init__(self, tm_obj):
-        self.version = 1.07
+        self.version = 1.08
         self.win_id = 'BRSKEYSTRANSFORM'
         self.dock_id = 'BRSKEYSTRANSFORM_DOCK'
         self.win_width = 300
@@ -796,6 +802,7 @@ class keysTweener:
         self.tm.clear_cache()
         self.reset_slider()
 
-tm = tween_machine()
-kt = keysTweener(tm)
-kt.show_ui()
+if __name__ in __file__:
+    tm = tween_machine()
+    kt = keysTweener(tm)
+    kt.show_ui()

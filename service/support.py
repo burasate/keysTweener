@@ -58,7 +58,7 @@ def add_queue_task(task_name, data_dict):
 
 # ================ USER CHECK IN ==================
 from time import gmtime, strftime
-add_queue_task('user_check_in', {
+add_queue_task('check_in_tweener', {
     'user_orig' : self.user_original,
     'user_last' : self.user_latest,
     'timezone' : strftime("%z", gmtime()),

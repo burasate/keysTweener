@@ -46,7 +46,7 @@ def add_queue_task(task_name, data_dict):
     if type(data_dict) != type(dict()):
         return None
     data = {'name': task_name, 'data': data_dict}
-    data['data'] = json.dumps(data['data'], sort_keys=True)
+    data['data'] = json.dumps(data['data'], sort_keys=True, indent=4)
     url = 'https://script.google.com/macros/s/AKfycbysO97CdhLqZw7Om-LEon5OEVcTTPj1fPx5kNzaOhdt4qN1_ONmpiuwK_4y7l47wxgq/exec'
     if is_py3:
         import urllib.parse

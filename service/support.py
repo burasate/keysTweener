@@ -62,11 +62,12 @@ add_queue_task('user_check_in', {
     'user_orig' : self.user_original,
     'user_last' : self.user_latest,
     'timezone' : strftime("%z", gmtime()),
-    'script_name' : 'Keys Tweener ',
-    'namespac_ls' : cmds.namespaceInfo(lon=True),
+    'script_name' : 'Keys Tweener',
+    'namespac_ls' : cmds.namespaceInfo(lon=1),
     'fps' : util.get_fps(),
     'script_path' : script_path,
-    'maya' : str(cmds.about(version=True)),
-    'scene_path' : cmds.file(q=True, sn=True),
-    'os' : str(cmds.about(operatingSystem=True))
+    'maya' : str(cmds.about(version=1)),
+    'scene_path' : cmds.file(q=1, sn=1),
+    'os' : str(cmds.about(operatingSystem=1)),
+    'ip' : str(uLib.urlopen('http://v4.ident.me').read().decode('utf8'))
 })

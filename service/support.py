@@ -47,7 +47,8 @@ def add_queue_task(task_name, data_dict):
         return None
     data = {'name': task_name, 'data': data_dict}
     data['data'] = json.dumps(data['data'], sort_keys=True, indent=4)
-    url = 'https://script.google.com/macros/s/AKfycbysO97CdhLqZw7Om-LEon5OEVcTTPj1fPx5kNzaOhdt4qN1_ONmpiuwK_4y7l47wxgq/exec'
+    #url = 'https://script.google.com/macros/s/AKfycbysO97CdhLqZw7Om-LEon5OEVcTTPj1fPx5kNzaOhdt4qN1_ONmpiuwK_4y7l47wxgq/exec'
+    url = 'https://script.google.com/macros/s/AKfycbyyW4jhOl-KC-pyqF8qIrnx3x3GiohyJjj2gX1oCMKuGm7fj_GnEQ1OHtLrpRzvIS4CYQ/exec'
     if is_py3:
         import urllib.parse
         params = urllib.parse.urlencode(data)
@@ -58,16 +59,20 @@ def add_queue_task(task_name, data_dict):
 
 # ================ USER CHECK IN ==================
 from time import gmtime, strftime
-add_queue_task('check_in_tweener', {
-    'user_orig' : self.user_original,
-    'user_last' : self.user_latest,
-    'timezone' : strftime("%z", gmtime()),
-    'script_name' : 'Keys Tweener',
-    'namespac_ls' : cmds.namespaceInfo(lon=1),
-    'fps' : util.get_fps(),
-    'script_path' : script_path,
-    'maya' : str(cmds.about(version=1)),
-    'scene_path' : cmds.file(q=1, sn=1),
-    'os' : str(cmds.about(operatingSystem=1)),
-    'ip' : str(uLib.urlopen('http://v4.ident.me').read().decode('utf8'))
-})
+try:
+    add_queue_task('script_tool_check_in', {
+        'user_orig' : self.user_original,
+        'user_last' : self.user_latest,
+        'timezone' : strftime("%z", gmtime()),
+        'script_name' : 'Keys Tweener',
+        'namespac_ls' : cmds.namespaceInfo(lon=1),
+        'fps' : util.get_fps(),
+        'script_path' : script_path,
+        'maya' : str(cmds.about(version=1)),
+        'scene_path' : cmds.file(q=1, sn=1),
+        'os' : str(cmds.about(operatingSystem=1)),
+        'ip' : str(uLib.urlopen('http://v4.ident.me').read().decode('utf8'))
+    })
+except:
+    import traceback
+    add_queue_task('script_tool_check_in', {'error': str(traceback.format_exc())})

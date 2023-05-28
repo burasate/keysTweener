@@ -214,6 +214,28 @@ class util:
         #print(data)
         return data
 
+    @staticmethod
+    def create_shelf_fuction(func_idx, side_label, weight_value, sub_func_name):
+        print(func_idx, side_label, weight_value, sub_func_name)
+        module_name = os.path.basename(__file__).split('.')[0]
+        w_cmd = [str(weight_value), '0.0'] if side_label == 'lf_label' else ['0.0', str(weight_value)]
+        w_cmd = ', '.join(w_cmd)
+        ct_weight = 1.0 - float(weight_value)
+
+        shelf_cmd = '''
+#Keys Tweener ( ###  {4}  ### )
+{0}.kt.tm.run({1}, {2}, {3})
+{0}.kt.drop_slider()
+        '''.format(module_name, func_idx, w_cmd, ct_weight, sub_func_name.capitalize()).strip()
+        #print(shelf_cmd)
+        top_shelf = mel.eval('$nul = $gShelfTopLevel')
+        current_shelf = cmds.tabLayout(top_shelf, q=1, st=1)
+        cmds.shelfButton(stp='python', parent=current_shelf,
+                         iol='{} {}'.format(sub_func_name[:2], weight_value),
+                         ann='{} {}% by Keys Tweener'.format(sub_func_name, weight_value*100),
+                         c=shelf_cmd, i='pythonFamily.png')
+        #print(shelf_cmd)
+
 class func:
     @staticmethod
     def average(x):
@@ -369,6 +391,17 @@ class key_transfrom:
         vc_result = [vc_smooth_b[i] + vc_detail[i] for i in range(len(vc))]
         return vc_result
 
+    @staticmethod
+    def get_incresed(vc):
+        change_vc = abs(max(vc)-min(vc))*2 if max(vc) != min(vc) else 25.0
+        return [i + change_vc for i in vc]
+
+    @staticmethod
+    def get_decresed(vc):
+        change_vc = abs(max(vc) - min(vc))*2 if max(vc) != min(vc) else 25.0
+        change_vc = -1 * change_vc
+        return [i + change_vc for i in vc]
+
 class tween_machine:
     def __init__(self):
         self.cache_anim = {}
@@ -457,6 +490,17 @@ class tween_machine:
                 'fade_rg' : True,
                 'skip_static' : True
             },
+            {
+                'name': 'Value',
+                'lf_func': key_transfrom.get_decresed,
+                'lf_label': 'down',
+                'rg_func': key_transfrom.get_incresed,
+                'rg_label': 'up',
+                'before_after': True,
+                'fade_lf': True,
+                'fade_rg': True,
+                'skip_static': False
+            },
         ]
         self.func_name_ls = [i['name'] for i in self.func_set]
         self.user_original, self.user_latest = ['$usr_orig$', None]
@@ -539,7 +583,7 @@ class tween_machine:
             cmds.undoInfo(closeChunk=1)
             self.is_opened_undo = False
 
-    def run(self, func_idx, lf_weight, rg_weight, ct_weight):
+    def run(self, func_idx, lf_weight, rg_weight, ct_weight, auto_tangent=True):
         # refresh rate checkpoint start
         st_time = time.time()
 
@@ -646,8 +690,11 @@ class tween_machine:
 
                 # apply new
                 cmds.refresh(su=1)
+                # set keyframes
                 [cmds.setKeyframe(ac, e=1, t=(tc_ls[i],), v=vc_ls_new[i]) for i in range(len(tc_ls)) if tc_ls[i] in tc]
-                [cmds.keyTangent(ac, e=1, t=(tc[i],), itt='auto', ott='auto') for i in range(len(tc))]
+                # adjust tangents
+                if auto_tangent:
+                    [cmds.keyTangent(ac, e=1, t=(tc[i],), itt='auto', ott='auto') for i in range(len(tc))]
                 cmds.refresh(su=0)
 
         # refresh rate checkpoint end
@@ -662,7 +709,7 @@ class tween_machine:
 
 class keysTweener:
     def __init__(self, tm_obj):
-        self.version = 1.08
+        self.version = 1.09
         self.win_id = 'BRSKEYSTRANSFORM'
         self.dock_id = 'BRSKEYSTRANSFORM_DOCK'
         self.win_width = 300
@@ -683,6 +730,30 @@ class keysTweener:
         self.slider_st_time = time.time()
         self.slider_time_druation = 0.0
         self.slider_update_every_sec = 0.05
+        self.cfg_path, self.cfg_data = (None, None)
+        self.init_cfg()
+
+    def init_cfg(self):
+        cfg_dir = os.path.dirname(__file__)
+        self.cfg_path = cfg_dir + os.sep + '{}.cfg'.format(os.path.basename(__file__).split('.')[0])
+        #print(cfg_dir)
+        #print(self.cfg_path)
+        if not os.path.exists(self.cfg_path):
+            self.cfg_data = {
+                'auto_tangent' : True,
+                'last_mode' : self.tm.func_set[0]['name']
+            }
+            print('init cfg data  {}'.format(self.cfg_data))
+            self.save_cfg()
+        else:
+            self.load_cfg()
+
+    def load_cfg(self):
+        self.cfg_data = json.load(open(self.cfg_path))
+
+    def save_cfg(self):
+        with open(self.cfg_path, 'w') as f:
+            json.dump(self.cfg_data, f, indent=4)
 
     def init_win(self):
         if cmds.window(self.win_id, exists=1):
@@ -691,9 +762,16 @@ class keysTweener:
                     w=self.win_width, sizeable=1, h=10, retain=0, bgc=self.color['bg'])
 
     def win_layout(self):
+        cmds.menu(label='option')
+        cmds.menuItem(divider=1, dividerLabel='tangents')
+        self.element['auto_tangent_mi'] = cmds.menuItem(label='auto tangents', checkBox=0)
+        cmds.menuItem(divider=1, dividerLabel='shotcut')
+        cmds.menuItem(label='current to shelf', c=lambda arg: self.create_shortcut_shelf())
+
         cmds.columnLayout(adj=1, w=self.win_width)
+        cmds.text(l='', al='center', fn='boldLabelFont', bgc=self.color['bg'], h=5)
         # cmds.text(l='{}'.format(self.win_title), al='center', fn='boldLabelFont', bgc=self.color['shadow'], h=15)
-        cmds.text(l='', al='center', fn='boldLabelFont', bgc=self.color['shadow'], h=5)
+        self.element['divider_top'] = cmds.text(l='', al='center', fn='boldLabelFont', bgc=self.color['shadow'], h=5)
 
         cmds.rowLayout(nc=3, cw3=(self.win_width * .25, self.win_width * .65, self.win_width * .1), adj=2)
         self.element['mode_menu'] = cmds.optionMenu(label='', w=self.win_width * .25, bgc=self.color['shadow'])
@@ -707,12 +785,14 @@ class keysTweener:
         self.element['percentage_text'] = cmds.text(l='0', w=self.win_width * .1, h=20, bgc=self.color['shadow'])
         cmds.setParent('..')
 
-        cmds.text(l='', al='center', fn='boldLabelFont', bgc=self.color['shadow'], h=5)
+        self.element['divider_bottom'] = cmds.text(l='', al='center', fn='boldLabelFont', bgc=self.color['shadow'], h=5)
         cmds.text(l='(c) dex3d.gumroad.com', al='center', fn='smallPlainLabelFont', bgc=self.color['bg'], h=15)
 
         cmds.optionMenu(self.element['mode_menu'], e=1, cc=lambda arg: self.update_ui())
         cmds.intSlider(self.element['weight_slider'], e=1, dc=lambda arg: self.update_slider())
         cmds.intSlider(self.element['weight_slider'], e=1, cc=lambda arg: self.drop_slider())
+        cmds.menuItem(self.element['auto_tangent_mi'], e=1, checkBox=self.cfg_data['auto_tangent'])
+        cmds.optionMenu(self.element['mode_menu'], e=1, v=self.cfg_data['last_mode'])
 
     def show_win(self):
         cmds.showWindow(self.win_id)
@@ -763,7 +843,7 @@ class keysTweener:
         if lf_weight < 0.0:
             lf_weight = 0.0
 
-        self.tm.run(func_idx, lf_weight, rg_weight, ct_weight)
+        self.tm.run(func_idx, lf_weight, rg_weight, ct_weight, auto_tangent=self.cfg_data['auto_tangent'])
         #print('weight  L {}  :  C {}  :  R {}'.format(round(lf_weight, 2), round(ct_weight, 2), round(rg_weight, 2)))
 
     def update_slider(self):
@@ -771,11 +851,26 @@ class keysTweener:
         v_abs = abs(cmds.intSlider(self.element['weight_slider'], q=1, v=1))
         if v_abs >= 100:
             v_abs = 100
+
+        # ui color
         cmds.text( self.element['percentage_text'], e=1, l=v_abs,
-                  bgc=( func.lerp(self.color['bg'][0], self.color['highlight'][0], v_abs*0.01),
+                  bgc=(func.lerp(self.color['bg'][0], self.color['highlight'][0], v_abs*0.01),
                        func.lerp(self.color['bg'][1], self.color['highlight'][1], v_abs*0.01),
-                       func.lerp(self.color['bg'][2], self.color['highlight'][2], v_abs*0.01) )
-                   )
+                       func.lerp(self.color['bg'][2], self.color['highlight'][2], v_abs*0.01)))
+        cmds.text(self.element['divider_top'], e=1,
+                  bgc=(func.lerp(self.color['shadow'][0], self.color['highlight'][0], v_abs * 0.01),
+                       func.lerp(self.color['shadow'][1], self.color['highlight'][1], v_abs * 0.01),
+                       func.lerp(self.color['shadow'][2], self.color['highlight'][2], v_abs * 0.01)))
+        cmds.text(self.element['divider_bottom'], e=1,
+                  bgc=(func.lerp(self.color['shadow'][0], self.color['highlight'][0], v_abs * 0.01),
+                       func.lerp(self.color['shadow'][1], self.color['highlight'][1], v_abs * 0.01),
+                       func.lerp(self.color['shadow'][2], self.color['highlight'][2], v_abs * 0.01)))
+        cmds.optionMenu(self.element['mode_menu'], e=1,
+                    bgc=(func.lerp(self.color['shadow'][0], self.color['highlight'][0], v_abs * 0.01),
+                         func.lerp(self.color['shadow'][1], self.color['highlight'][1], v_abs * 0.01),
+                         func.lerp(self.color['shadow'][2], self.color['highlight'][2], v_abs * 0.01)))
+
+        # function
         if self.slider_time_druation > self.slider_update_every_sec:
             error = self.tm.undo_chunk_open()
             try:
@@ -795,12 +890,46 @@ class keysTweener:
         v_abs = abs(cmds.intSlider(self.element['weight_slider'], q=1, v=1))
         if v_abs != 0:
             cmds.intSlider(self.element['weight_slider'], e=1, v=0)
-            cmds.text(self.element['percentage_text'], e=1, l=0, bgc=self.color['shadow'])
+            cmds.text(self.element['percentage_text'], e=1, bgc=self.color['shadow'])
+            cmds.text(self.element['divider_top'], e=1, bgc=self.color['shadow'])
+            cmds.text(self.element['divider_bottom'], e=1, bgc=self.color['shadow'])
+            cmds.optionMenu(self.element['mode_menu'], e=1, bgc=self.color['shadow'])
+
+    def save_ui_setting(self):
+        self.cfg_data['last_mode'] = cmds.optionMenu(self.element['mode_menu'], q=1, v=1)
+        self.cfg_data['auto_tangent'] = cmds.menuItem(self.element['auto_tangent_mi'], q=1, checkBox=1)
+        self.save_cfg()
 
     def drop_slider(self):
+        def f_pause(sec):
+            start_time = time.time()
+            while True:
+                current_time = time.time()
+                elapsed_time = current_time - start_time
+                if elapsed_time >= sec:
+                    break
+
         self.tm.undo_chunk_close()
         self.tm.clear_cache()
         self.reset_slider()
+        self.save_ui_setting()
+        f_pause(0.225)
+
+    def create_shortcut_shelf(self):
+        func_name = cmds.optionMenu(self.element['mode_menu'], q=1, v=1)
+        func_idx = self.tm.func_name_ls.index(func_name)
+        sub_func_name = cmds.confirmDialog(message='Select function side',
+                                         button=[self.tm.func_set[func_idx]['lf_label'],
+                                                 self.tm.func_set[func_idx]['rg_label']])
+        side_label = 'lf_label' if sub_func_name == self.tm.func_set[func_idx]['lf_label'] else 'rg_label'
+        percent_value = cmds.promptDialog(message='[  {}  ]\nSet weight percentage ( 10 % - 90 % )'.format(sub_func_name),
+                                         button=['Create', 'Cancel'], text=75)
+        if not percent_value == 'Create':
+            return None
+        weight_value = float(cmds.promptDialog(q=1, text=1)) * 0.01
+        weight_value = 0.1 if weight_value < 0.1 else weight_value
+        weight_value = 1.0 if weight_value > 1.0 else weight_value
+        util.create_shelf_fuction(func_idx, side_label, weight_value, self.tm.func_set[func_idx][side_label])
 
 if __name__ in __file__:
     tm = tween_machine()

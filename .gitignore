@@ -127,3 +127,4 @@ dmypy.json
 __init__.py
 publish/
 version/
+*.cfg

@@ -8,12 +8,13 @@
 import maya.cmds as cmds
 from maya import mel
 import math, time, os, sys, json
+from math import sqrt
 
 class util:
     @staticmethod
     def get_fps(*_):
         timeUnitSet = {'game': 15, 'film': 24, 'pal': 25, 'ntsc': 30, 'show': 48, 'palf': 50, 'ntscf': 60}
-        timeUnit = cmds.currentUnit(q=True, t=True)
+        timeUnit = cmds.currentUnit(q=1, t=1)
         if timeUnit in timeUnitSet:
             return timeUnitSet[timeUnit]
         else:

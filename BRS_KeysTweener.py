@@ -58,26 +58,29 @@ class util:
     @staticmethod
     def set_key_curve_current_time():
         sel = cmds.ls(sl=1)
-        sel = [i for i in sel if cmds.objectType(i) == 'transform']
-        # print(sel)
 
         #Channel
         gChannelBoxName = mel.eval('$temp=$gChannelBoxName')
         ch_list = cmds.channelBox(gChannelBoxName, q=True, sma=True)
-        # print(ch_list)
+        print('ch_list', ch_list)
         attr_list = []
         for s in sel:
             attrs = [s + '.' + i for i in cmds.listAttr(s, k=1, sn=1, se=1)]
-            # print(attrs)
+            print(attrs)
             attr_list += attrs
-
+            print(s)
             if cmds.listRelatives(s, s=1) != None:
-                shp = cmds.listRelatives(s, s=1, f=1)[0]
-                if cmds.listAnimatable(shp) != None:
-                    attrs2 = [shp + '.' + i.split('.')[-1] for i in cmds.listAnimatable(shp)]
-                    attr_list += attrs2
-            # print(attrs2)
-
+                shp_ls = cmds.listRelatives(s, s=1, f=1)
+                print('shp_ls', shp_ls)
+                for shp in shp_ls:
+                    print(shp)
+                    if cmds.listAnimatable(shp) != None:
+                        attrs2 = [shp + '.' + i.split('.')[-1] for i in cmds.listAnimatable(shp)]
+                        attr_list += attrs2
+                        print(attrs2)
+                        
+        print('attr list', attr_list)
+        
         del_attr_list = []
         for attr in attr_list:
             a = attr.split('.')[-1]
@@ -92,6 +95,9 @@ class util:
         is_timline_highlight = abs(sel_frame_range[-1] - sel_frame_range[0]) > 1.0
         #print(sel_frame_range, is_timline_highlight)
 
+        print('attr list', attr_list)
+        if attr_list == []:
+            raise Warning('attributes are not found')
         ac_ls = cmds.keyframe(attr_list, q=1, name=1)
         #print(ac_ls)
 
@@ -710,7 +716,7 @@ class tween_machine:
 
 class keysTweener:
     def __init__(self, tm_obj):
-        self.version = 1.09
+        self.version = 1.10
         self.win_id = 'BRSKEYSTRANSFORM'
         self.dock_id = 'BRSKEYSTRANSFORM_DOCK'
         self.win_width = 300

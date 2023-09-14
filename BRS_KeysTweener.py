@@ -62,24 +62,25 @@ class util:
         #Channel
         gChannelBoxName = mel.eval('$temp=$gChannelBoxName')
         ch_list = cmds.channelBox(gChannelBoxName, q=True, sma=True)
-        print('ch_list', ch_list)
+        #print('ch_list', ch_list)
         attr_list = []
         for s in sel:
+            if cmds.listAttr(s, k=1, sn=1, se=1) == None: continue
             attrs = [s + '.' + i for i in cmds.listAttr(s, k=1, sn=1, se=1)]
-            print(attrs)
+            #print(attrs)
             attr_list += attrs
-            print(s)
+            #print(s)
             if cmds.listRelatives(s, s=1) != None:
                 shp_ls = cmds.listRelatives(s, s=1, f=1)
-                print('shp_ls', shp_ls)
+                #print('shp_ls', shp_ls)
                 for shp in shp_ls:
-                    print(shp)
+                    #print(shp)
                     if cmds.listAnimatable(shp) != None:
                         attrs2 = [shp + '.' + i.split('.')[-1] for i in cmds.listAnimatable(shp)]
                         attr_list += attrs2
-                        print(attrs2)
+                        #print(attrs2)
                         
-        print('attr list', attr_list)
+        #print('attr list', attr_list)
         
         del_attr_list = []
         for attr in attr_list:

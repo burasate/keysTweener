@@ -241,7 +241,7 @@ class util:
         cmds.shelfButton(stp='python', parent=current_shelf,
                          iol='{} {}'.format(sub_func_name[:2], weight_value),
                          ann='{} {}% by Keys Tweener'.format(sub_func_name, weight_value*100),
-                         c=shelf_cmd, i='pythonFamily.png')
+                         c=shelf_cmd, i='animCurveTA.svg')
         #print(shelf_cmd)
 
 class func:

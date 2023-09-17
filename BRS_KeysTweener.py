@@ -234,6 +234,7 @@ class util:
 #Keys Tweener ( ###  {4}  ### )
 {0}.kt.tm.run({1}, {2}, {3})
 {0}.kt.drop_slider()
+cmds.refresh(f=1)
         '''.format(module_name, func_idx, w_cmd, ct_weight, sub_func_name.capitalize()).strip()
         #print(shelf_cmd)
         top_shelf = mel.eval('$nul = $gShelfTopLevel')

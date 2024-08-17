@@ -7,7 +7,7 @@
 
 import maya.cmds as cmds
 from maya import mel
-import math, time, os, sys, json
+import math, time, os, sys, json, random
 from math import sqrt
 
 class util:
@@ -411,6 +411,45 @@ class key_transfrom:
         change_vc = -1 * change_vc
         return [i + change_vc for i in vc]
 
+    @staticmethod
+    def get_noise_a(vc):
+        wave_vc = key_transfrom.get_wave_a(vc)
+        min_vc, max_vc = min(wave_vc), max(wave_vc)
+        vc_range = (max_vc - min_vc)
+        noisy_vc = [i + random.uniform((vc_range*.5)*-1, vc_range*.5) for i in vc]
+        return noisy_vc
+
+    @staticmethod
+    def get_noise_b(vc):
+        wave_vc = key_transfrom.get_wave_b(vc)
+        min_vc, max_vc = min(wave_vc), max(wave_vc)
+        vc_range = (max_vc - min_vc)
+        noisy_vc = [i + random.uniform((vc_range*.5)*-1, vc_range*.5) for i in vc]
+        noisy_vc = key_transfrom.get_smooth(noisy_vc)
+        return noisy_vc
+
+    @staticmethod
+    def get_overshoot_a(vc, freq=3, decay=5, duration=0.1):
+        fps = util.get_fps()
+        times = [t / fps for t in range(len(vc) + 1)]
+        results = []
+        for i in range(len(vc)):
+            current_time = times[i]
+            if current_time < duration:
+                linear_value = vc[0] + (vc[-1] - vc[0]) * (current_time / duration)
+                results.append(linear_value)
+            else:
+                t = current_time - duration
+                amp = (vc[-1] - vc[0]) / duration
+                w = freq * math.pi * 2
+                overshoot_value = vc[-1] + amp * (math.sin(t * w) / math.exp(decay * t) / w)
+                results.append(overshoot_value)
+        return results
+
+    @staticmethod
+    def get_overshoot_b(vc, freq=2, decay=2, duration=.2):
+        return key_transfrom.get_overshoot_a(vc, freq=freq, decay=decay, duration=duration)
+
 class tween_machine:
     def __init__(self):
         self.cache_anim = {}
@@ -509,6 +548,28 @@ class tween_machine:
                 'fade_lf': True,
                 'fade_rg': True,
                 'skip_static': False
+            },
+            {
+                'name': 'Noise',
+                'lf_func': key_transfrom.get_noise_a,
+                'lf_label': 'noise a',
+                'rg_func': key_transfrom.get_noise_b,
+                'rg_label': 'noise b',
+                'before_after': True,
+                'fade_lf': True,
+                'fade_rg': True,
+                'skip_static': False
+            },
+            {
+                'name': 'Overshoot',
+                'lf_func': key_transfrom.get_overshoot_a,
+                'lf_label': 'quick',
+                'rg_func': key_transfrom.get_overshoot_b,
+                'rg_label': 'slow',
+                'before_after': False,
+                'fade_lf': True,
+                'fade_rg': True,
+                'skip_static': True
             },
         ]
         self.func_name_ls = [i['name'] for i in self.func_set]
@@ -718,7 +779,7 @@ class tween_machine:
 
 class keysTweener:
     def __init__(self, tm_obj):
-        self.version = 1.10
+        self.version = 1.11
         self.win_id = 'BRSKEYSTRANSFORM'
         self.dock_id = 'BRSKEYSTRANSFORM_DOCK'
         self.win_width = 300
